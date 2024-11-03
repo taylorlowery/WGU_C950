@@ -1,6 +1,7 @@
 import pytest
 from datetime import datetime, time
-from lib.delivery_algorithm import package_status_at_provided_time
+from lib.csv_utils import csv_to_distances, csv_to_packages
+from lib.delivery_algorithm import package_status_at_provided_time, deliver_packages
 from models.package import Package, DeliveryStatus
 
 
@@ -47,3 +48,9 @@ def test_unprocessed_package():
     current_time = time(8, 0)
     result = package_status_at_provided_time(unprocessed_package, current_time)
     assert f"Package 2 {DeliveryStatus.AT_HUB}" in result
+
+def test_delivery_algoritm():
+    packages: list[Package] = csv_to_packages("data/WGUPSPackageFile.csv")
+    distance_table: dict[str, dict[str, float]] = csv_to_distances("data/WGUPSDistanceTable.csv")
+
+    packages = deliver_packages(packages, distance_table=distance_table)

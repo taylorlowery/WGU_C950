@@ -46,7 +46,7 @@ Requirements:
 from lib.delivery_algorithm import deliver_packages, package_status_at_provided_time
 from models import Package, Truck
 from datetime import datetime, timedelta
-from lib.csv_utils import csv_to_packages
+from lib.csv_utils import csv_to_packages, csv_to_distances
 
 
 def main():
@@ -54,8 +54,9 @@ def main():
     print("Loading package information...")
 
     packages: list[Package] = csv_to_packages("data/WGUPSPackageFile.csv")
+    distance_table: dict[str, dict[str, float]] = csv_to_distances("data/WGUPSDistanceTable.csv")
 
-    packages = deliver_packages(packages)
+    packages = deliver_packages(packages, distance_table=distance_table)
 
     print("Package info loaded!")
     print("Press 'q' to quit at any time.")

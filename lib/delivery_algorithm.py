@@ -39,7 +39,7 @@ def package_status_at_provided_time(
     return f"Package {selected_package.package_id} - {DeliveryStatus.EN_ROUTE} on truck {selected_package.truck_id}"
 
 
-def deliver_packages(packages: list[Package], distance_map: dict):
+def deliver_packages(packages: list[Package], distance_table: dict[str, dict[str, float]]):
     """Nearest-Neighbor Greedy Algorithm to deliver packages.
 
     Assumptions:
@@ -57,17 +57,28 @@ def deliver_packages(packages: list[Package], distance_map: dict):
     """
 
     # three trucks are available, but only two drivers, so only two can be utilized.
-    truck_1 = Truck(truck_id=1, distance_map=distance_map)
-    truck_2 = Truck(truck_id=2, distance_map=distance_map)
+    truck_1 = Truck(truck_id=1, distance_table=distance_table)
+    truck_2 = Truck(truck_id=2, distance_table=distance_table)
 
     # load distances
-    # distances need to be parsed according to their weirdneesses
+    # distances need to be parsed according to their weirdnesses
 
     # since some packages are delayed til 9:05,
     # start one truck delivering all the other early packages,
     # second truck will be loaded at 9:05 and start delivering all those before 10:30
     # once all 10:30am deliveries are complete,
     # nearest neighbor deliveries til all are delivered
+    i: int = 0
+    while i < len(packages):
+        j = 0
+        while j < 16:
+            truck_1.load_package(package=packages[j])
+            j += 1
+            i += 1
+        truck_1.deliver_all_packages()
+
     # total truck mileage must be less than 140 miles
-    #
+    total_mileage = truck_1.current_mileage + truck_2.current_mileage
+    print(f"Total Mileage: {total_mileage}")
+
     return packages

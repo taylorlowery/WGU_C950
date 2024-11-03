@@ -10,7 +10,7 @@ TRUCK_SPEED_MPH: float = 18.0
 @dataclass
 class Truck:
     truck_id: int
-    distance_map = dict()
+    distance_table: dict[str, dict[str, float]] = field(default_factory=dict)
     packages_to_deliver: Deque[Package] = field(default_factory=Deque)
     delivered_packages: list[Package] = field(default_factory=list)
     current_package: Optional[Package] = None
@@ -21,7 +21,7 @@ class Truck:
 
     def load_package(self, package: Package):
         """Load packages onto truck.
-        
+
         The order they are loaded determines delivery order,
         which will be determined on the main algorithm.
         Marks the package as having been loaded onto this truck.
@@ -31,19 +31,30 @@ class Truck:
         self.packages_to_deliver.append(package)
 
     def next_package(self) -> Optional[Package]:
-        if self.packages_to_deliver.count() == 0:
+        """Retrieve next package from queue, or return None if empty"""
+        if len(self.packages_to_deliver) == 0:
             return None
         p = self.packages_to_deliver.popleft()
         return p
 
-    def deliver_package(
-        self, package: Package
-    ):
-        distance = self.distance_map[self.current_location][package.delivery_address]
+    def deliver_package(self, package: Package):
+        """Deliver a package.
+
+        Using the distance map and current time,
+        calculate dilvery time to next address,
+        and update truck and package fields to state after delivery.
+        """
+        # get distance and time to delivery
+        distance = self.distance_table[self.current_location][package.address]
         elapsed_time = distance / TRUCK_SPEED_MPH
-        self.current_location = package.delivery_address
+
+        # move truck through time and space to delivery location
+        self.current_location = package.address
         self.current_mileage += distance
-        self.current_time = self.current_time + datetime.timedelta(hours=elapsed_time)
+        current_datetime = datetime.datetime.combine(datetime.date.today(), self.current_time)
+        self.current_time = (current_datetime + datetime.timedelta(hours=elapsed_time)).time()
+
+        # set package status to delivered
         package.delivery_state = DeliveryStatus.DELIVERED
         package.time_delivered = self.current_time
         self.delivered_packages.append(package)
@@ -52,11 +63,12 @@ class Truck:
         # one by one, dequeue and deliver packages
         while (package := self.next_package()) is not None:
             # TODO: Parse distances and get distance map
-            self.deliver_package(package=package, distance_map=None)
+            self.deliver_package(package=package)
 
         # return home
-        distance_home = self.distance_map[self.current_location]["HUB"]
+        distance_home = self.distance_table[self.current_location]["HUB"]
         elapsed_time = distance_home / TRUCK_SPEED_MPH
         self.current_mileage += distance_home
         self.current_location = "HUB"
-        self.current_time += datetime.timedelta(hours=elapsed_time)
+        current_datetime = datetime.datetime.combine(datetime.date.today(), self.current_time)
+        self.current_time = (current_datetime + datetime.timedelta(hours=elapsed_time)).time()

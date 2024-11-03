@@ -24,3 +24,9 @@ class Package:
     time_loaded_onto_truck: Optional[datetime.time] = None
     time_delivered: Optional[datetime.time] = None
     truck_id: Optional[int] = None
+
+    @property
+    def address(self) -> str:
+        # return the address in the form matching the distance table
+        # ex, `1060 Dalton Ave S (84104)`
+        return f"{self.delivery_address} ({self.delivery_zip_code})"

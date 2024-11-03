@@ -1,6 +1,7 @@
 import csv
 from models.package import Package
 from lib.delivery_data_structure import DeliveryStatus
+from copy import deepcopy
 
 
 def csv_to_packages(filepath: str) -> list[Package]:
@@ -35,3 +36,29 @@ def csv_to_packages(filepath: str) -> list[Package]:
                 continue
 
     return packages
+
+
+def csv_to_distances(filepath: str) -> dict:
+    locations: list[str] = []
+    distance_map: dict = dict()
+
+    rows = []  # list to hold rows
+    with open(file=filepath, encoding="utf-8-sig") as distance_file:
+        rows = list(csv.reader(distance_file, delimiter=","))
+
+    # iterate through once, gathering all locations
+    for row in rows:
+        title = row[1]
+        locations.append(title)
+        distance_map[title] = dict()
+
+    for i, location in enumerate(locations):
+        row = rows[i]
+        for j, distance in enumerate(row[2:], start=0):
+            if distance == "":
+                break # once we hit empty strings, move to next row
+            to_location = locations[j]
+            distance_map[location][to_location] = float(distance)
+            distance_map[to_location][location] = float(distance)
+    
+    return distance_map
