@@ -2,20 +2,6 @@
 Author: Taylor Lowery
 Student ID: 011681727
 
-Description:
-This module contains the main functionality for the C950 Data Structures and Algorithms II WGUPS Delivery Task 2.
-Assumptions:
-    •  Each truck can carry a maximum of 16 packages, and the ID number of each package is unique.
-    •  The trucks travel at an average speed of 18 miles per hour and have an infinite amount of gas with no need to stop.
-    •  There are no collisions.
-    •  Three trucks and two drivers are available for deliveries. Each driver stays with the same truck as long as that truck is in service.
-    •  Drivers leave the hub no earlier than 8:00 a.m., with the truck loaded, and can return to the hub for packages if needed.
-    •  The delivery and loading times are instantaneous (i.e., no time passes while at a delivery or when moving packages to a truck at the hub). This time is factored into the calculation of the average speed of the trucks.
-    •  There is up to one special note associated with a package.
-    •  The delivery address for package #9, Third District Juvenile Court, is wrong and will be corrected at 10:20 a.m. WGUPS is aware that the address is incorrect and will be updated at 10:20 a.m. However, WGUPS does not know the correct address (410 S. State St., Salt Lake City, UT 84111) until 10:20 a.m.
-    •  The distances provided in the "WGUPS Distance Table" are equal regardless of the direction traveled.
-    •  The day ends when all 40 packages have been delivered.
-
 Requirements:
 - [x] Develop a hash table, without using any additional libraries or classes, that has an insertion function that takes the package ID as input and inserts each of the following data components into the hash table:
     - delivery address
@@ -57,45 +43,38 @@ Requirements:
         - [ ] Describe how each data structure identified in H1 is different from the data structure used in the solution.
 """
 
-from models import package, truck
+from lib.delivery_algorithm import deliver_packages, package_status_at_provided_time
+from models import Package, Truck
 from datetime import datetime, timedelta
 from lib.csv_utils import csv_to_packages
-from lib.delivery_algorithm import package_status_at_provided_time
-
-START_TIME = datetime.strptime("08:00:00", "%H:%M:%S")
 
 
 def main():
     print("Welcome to the WGUPS delivery system!")
     print("Loading package information...")
-    truck_1 = truck.Truck()
-    truck_2 = truck.Truck()
-    truck_3 = truck.Truck()
 
-    packages: list[package.Package] = csv_to_packages("data/WGUPSPackageFile.csv")
+    packages: list[Package] = csv_to_packages("data/WGUPSPackageFile.csv")
 
-    # load distances
-    # distances need to be parsed according to their weirdneesses
+    packages = deliver_packages(packages)
 
-    # since some packages are delayed til 9:05,
-    # start one truck delivering all the other early packages,
-    # second truck will be loaded at 9:05 and start delivering all those before 10:30
-    # once all 10:30am deliveries are complete,
-    # nearest neighbor deliveries til all are delivered
-    # total truck mileage must be less than 140 miles
-    #
     print("Package info loaded!")
     print("Press 'q' to quit at any time.")
     try:
         _input = ""
         while _input.lower() != "q":
+
+            # Get user's desired package
             _input = input(
                 f"Please enter a package id (1 - {len(packages)}) to view its status, or -1 to print all package statuses."
                 "\nPress q to quit\n>> "
             )
             try:
                 package_id = int(_input)
+
+                # get the desired time user would like to see package status
                 current_time = ask_for_current_time()
+
+                # user selects valid ID, so print its status
                 if 1 <= package_id <= len(packages):
                     selected_package = packages[package_id - 1]
                     print(
@@ -103,6 +82,8 @@ def main():
                             selected_package=selected_package, current_time=current_time
                         )
                     )
+
+                # User wants to see all package statuses
                 elif -1 == package_id:
                     for p in packages:
                         print(
@@ -127,6 +108,7 @@ def main():
 
 
 def ask_for_current_time():
+    """Ask user to input the time they would like to see package statuses for."""
     try:
         current_time_str = input("Please enter the current time (HH:MM):\n>> ")
 
