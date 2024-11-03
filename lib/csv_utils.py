@@ -1,6 +1,7 @@
 import csv
-from models.Package import Package
+from models.package import Package
 from lib.delivery_data_structure import DeliveryStatus
+
 
 def csv_to_packages(filepath: str) -> list[Package]:
     packages: list[Package] = []

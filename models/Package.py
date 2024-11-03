@@ -3,10 +3,12 @@ from typing import Optional
 import datetime
 from dataclasses import dataclass
 
+
 class DeliveryStatus(StrEnum):
     AT_HUB = "AT_HUB"
     EN_ROUTE = "EN_ROUTE"
     DELIVERED = "DELIVERED"
+
 
 @dataclass
 class Package:
@@ -19,5 +21,6 @@ class Package:
     delivery_deadline: datetime.time
     special_notes: Optional[str] = None
     delivery_status: DeliveryStatus = DeliveryStatus.AT_HUB
+    time_loaded_onto_truck: Optional[datetime.time] = None
     time_delivered: Optional[datetime.time] = None
     truck_id: Optional[int] = None

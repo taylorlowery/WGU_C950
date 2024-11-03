@@ -1,7 +1,8 @@
 import csv
 from enum import StrEnum
 from typing import Optional
-from models.Package import Package
+from models.package import Package
+
 
 class DeliveryStatus(StrEnum):
     AT_HUB = "AT_HUB"

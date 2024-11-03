@@ -2,6 +2,7 @@ import pytest
 import lib.csv_utils as csv_utils
 from lib.delivery_data_structure import DeliveryStatus
 
+
 def test_csv_load():
     """Simple integration test to validate that packages can be loaded from csv."""
     file_path = "data/WGUPSPackageFile.csv"
