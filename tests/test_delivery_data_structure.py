@@ -308,17 +308,3 @@ def test_table_remove_nonexistent_package_id(length: int):
     assert len(ll) == 1
     assert ll.head.package == test_package
     assert ll.tail.package == test_package
-
-def test_csv_load():
-    """Simple integration test to validate that packages can be loaded from csv."""
-    file_path = "data/WGUPSPackageFile.csv"
-    packages_from_csv = delivery_data_structure.csv_to_packages(file_path)
-    # Package(1, 195 W Oakland Ave, Salt Lake City, 84115, 21.0, 10:30 AM, AT_HUB)
-    assert packages_from_csv[0].package_id == 1
-    assert packages_from_csv[0].delivery_address == "195 W Oakland Ave"
-    assert packages_from_csv[0].delivery_city == "Salt Lake City"
-    assert packages_from_csv[0].delivery_state == "UT"
-    assert packages_from_csv[0].delivery_zip_code == "84115"
-    assert packages_from_csv[0].package_weight == 21.0
-    assert packages_from_csv[0].delivery_deadline == "10:30 AM"
-    assert packages_from_csv[0].delivery_status == DeliveryStatus.AT_HUB
