@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime, time
-from lib.delivery_algorithm import print_package_status_at_provided_time
+from lib.delivery_algorithm import package_status_at_provided_time
 from models.package import Package, DeliveryStatus
 
 
@@ -22,19 +22,19 @@ def sample_package():
 
 def test_package_at_hub(sample_package):
     current_time = time(7, 0)  # Before loading time
-    result = print_package_status_at_provided_time(sample_package, current_time)
+    result = package_status_at_provided_time(sample_package, current_time)
     assert f"Package 1 {DeliveryStatus.AT_HUB}" in result
 
 
 def test_package_en_route(sample_package):
     current_time = time(9, 0)  # En route (already picked up, before delivery)
-    result = print_package_status_at_provided_time(sample_package, current_time)
+    result = package_status_at_provided_time(sample_package, current_time)
     assert f"Package 1 - {DeliveryStatus.EN_ROUTE} on truck 1" in result
 
 
 def test_package_delivered(sample_package):
     current_time = time(11, 0)  # After delivery
-    result = print_package_status_at_provided_time(sample_package, current_time)
+    result = package_status_at_provided_time(sample_package, current_time)
     assert f"Package 1 {DeliveryStatus.DELIVERED}" in result
     assert "10:00:00" in result
 
@@ -45,5 +45,5 @@ def test_unprocessed_package():
         2, "Test Address", "City", "State", "12345", time(9, 0), "10", "Notes"
     )
     current_time = time(8, 0)
-    result = print_package_status_at_provided_time(unprocessed_package, current_time)
+    result = package_status_at_provided_time(unprocessed_package, current_time)
     assert f"Package 2 {DeliveryStatus.AT_HUB}" in result

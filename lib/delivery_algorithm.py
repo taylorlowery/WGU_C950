@@ -2,7 +2,7 @@ from models.package import Package, DeliveryStatus
 from datetime import datetime
 
 
-def print_package_status_at_provided_time(
+def package_status_at_provided_time(
     selected_package: Package, current_time: datetime.time
 ) -> str:
     """Print the status of a package at a given time.

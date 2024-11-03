@@ -60,7 +60,7 @@ Requirements:
 from models import package, truck
 from datetime import datetime, timedelta
 from lib.csv_utils import csv_to_packages
-from lib.delivery_algorithm import print_package_status_at_provided_time
+from lib.delivery_algorithm import package_status_at_provided_time
 
 START_TIME = datetime.strptime("08:00:00", "%H:%M:%S")
 
@@ -90,25 +90,25 @@ def main():
         _input = ""
         while _input.lower() != "q":
             _input = input(
-                f"Please enter a package id (1 - {len(packages)}) to view its status, or press q to quit\n>> "
+                f"Please enter a package id (1 - {len(packages)}) to view its status, or -1 to print all package statuses."
+                "\nPress q to quit\n>> "
             )
             try:
                 package_id = int(_input)
+                current_time = ask_for_current_time()
                 if 1 <= package_id <= len(packages):
                     selected_package = packages[package_id - 1]
-                    print(selected_package)
-                    current_time_str = input(
-                        "Please enter the current time (HH:MM):\n>> "
+                    print(
+                        package_status_at_provided_time(
+                            selected_package=selected_package, current_time=current_time
+                        )
                     )
-                    try:
-                        current_time = datetime.strptime(current_time_str, "%H:%M")
-                        print(f"Current time is {current_time.time()}")
-
-                        # print the status of the package at the current time
-
-                    except ValueError:
+                elif -1 == package_id:
+                    for p in packages:
                         print(
-                            "Invalid time format. Please enter the time in HH:MM format."
+                            package_status_at_provided_time(
+                                selected_package=p, current_time=current_time
+                            )
                         )
                 else:
                     print(
@@ -124,6 +124,17 @@ def main():
         print("\nProcess interrupted. Exiting...")
 
     print("Goodbye!")
+
+
+def ask_for_current_time():
+    try:
+        current_time_str = input("Please enter the current time (HH:MM):\n>> ")
+
+        current_time = datetime.strptime(current_time_str, "%H:%M")
+        return current_time
+
+    except ValueError:
+        print("Invalid time format. Please enter the time in HH:MM format.")
 
 
 if __name__ == "__main__":
