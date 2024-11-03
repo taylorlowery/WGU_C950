@@ -8,7 +8,7 @@ from models.package import Package, DeliveryStatus
 def sample_package():
     """Simulate package after algorithm runs.
 
-    time_delivered will be populated and delivery status will be DELIVERED
+    `time_delivered` will be populated and `delivery_status` will be DELIVERED.
     """
     package = Package(
         1, "Test Address", "City", "State", "12345", time(9, 0), "10", "Notes"
@@ -37,3 +37,13 @@ def test_package_delivered(sample_package):
     result = print_package_status_at_provided_time(sample_package, current_time)
     assert f"Package 1 {DeliveryStatus.DELIVERED}" in result
     assert "10:00:00" in result
+
+
+def test_unprocessed_package():
+    # generate package in unprocessed state
+    unprocessed_package = Package(
+        2, "Test Address", "City", "State", "12345", time(9, 0), "10", "Notes"
+    )
+    current_time = time(8, 0)
+    result = print_package_status_at_provided_time(unprocessed_package, current_time)
+    assert f"Package 2 {DeliveryStatus.AT_HUB}" in result

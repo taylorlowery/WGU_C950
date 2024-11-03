@@ -72,7 +72,7 @@ def main():
     truck_2 = truck.Truck()
     truck_3 = truck.Truck()
 
-    packages = csv_to_packages("data/WGUPSPackageFile.csv")
+    packages: list[package.Package] = csv_to_packages("data/WGUPSPackageFile.csv")
 
     # load distances
     # distances need to be parsed according to their weirdneesses

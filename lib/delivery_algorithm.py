@@ -14,7 +14,10 @@ def print_package_status_at_provided_time(
     depending on whether the provided "current time" is
     before or after the package's pickup and/or delivery times
     """
-    if current_time < selected_package.time_loaded_onto_truck:
+    if (
+        selected_package.time_delivered is None
+        or current_time < selected_package.time_loaded_onto_truck
+    ):
         return f"Package {selected_package.package_id} {DeliveryStatus.AT_HUB}"
 
     if selected_package.time_delivered < current_time:
