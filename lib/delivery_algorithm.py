@@ -3,6 +3,7 @@
 """
 
 from typing import Optional
+from lib.delivery_data_structure import DeliveryHashTable
 from models import Truck
 from models.package import Package, DeliveryStatus
 import datetime
@@ -26,22 +27,22 @@ def package_status_at_provided_time(
     # default state -- AT_HUB
     if (
         selected_package.time_delivered is None
-        or current_time.time() < selected_package.time_loaded_onto_truck
+        or current_time < selected_package.time_loaded_onto_truck
     ):
         return f"Package {selected_package.package_id} - {DeliveryStatus.AT_HUB}"
 
-    if selected_package.time_delivered < current_time.time():
+    if selected_package.time_delivered < current_time:
         # since this will only be run against packages
         # that have already been run through the algo
         # should be "DELIVERED"
-        return f"Package {selected_package.package_id} - {selected_package.delivery_status.value} at {selected_package.time_delivered}"
+        return f"Package {selected_package.package_id} - {selected_package.delivery_status.value} by truck {selected_package.truck_id} at {selected_package.time_delivered} (delivery deadline was {selected_package.delivery_deadline})"
 
     # current time is before time_delivered and package was loaded on a truck, so it's en route
     return f"Package {selected_package.package_id} - {DeliveryStatus.EN_ROUTE} on truck {selected_package.truck_id}"
 
 
 def deliver_packages(
-    packages: list[Package], distance_table: dict[str, dict[str, float]]
+    packages: DeliveryHashTable, distance_table: dict[str, dict[str, float]]
 ):
     """Nearest-Neighbor Greedy Algorithm to deliver packages.
 
@@ -72,19 +73,66 @@ def deliver_packages(
     # once all 10:30am deliveries are complete,
     # nearest neighbor deliveries til all are delivered
     i: int = 0
-    current_package: Optional[Package] = None
+    current_package_truck_1: Optional[Package] = None
+    current_package_truck_2: Optional[Package] = None
     while i < len(packages):
         j = i
         while j < i + 16 and j < len(packages):
-            current_package = get_next_closest_package(
-                current_package=current_package,
+            current_package_truck_1 = get_next_closest_package(
+                current_package=current_package_truck_1,
                 packages=packages,
                 distance_table=distance_table,
+                current_time=truck_1.current_time,
+                truck_id=truck_1.truck_id,
             )
-            truck_1.load_package(current_package)
+            if current_package_truck_1 is not None:
+                truck_1.load_package(current_package_truck_1)
+
+            current_package_truck_2 = get_next_closest_package(
+                current_package=current_package_truck_2,
+                packages=packages,
+                distance_table=distance_table,
+                current_time=truck_2.current_time,
+                truck_id=truck_2.truck_id,
+            )
+            if current_package_truck_2 is not None:
+                truck_2.load_package(current_package_truck_2)
+
             j += 1
         truck_1.deliver_all_packages()
+        truck_2.deliver_all_packages()
         i += 16
+
+        # double-check that no packages were missed
+        # if all other packages are delivered before the earliest load time of a package,
+        # the delivery loop can end without trucks every picking up the package.
+        if current_package_truck_1 is None and current_package_truck_2 is None:
+            needs_reset = False
+            # iterate through packages and make sure all have been loaded onto a truck
+            for package_id in packages.package_ids:
+                package = packages.lookup(package_id)
+                # if any were never loaded,
+                # allow some time to pass and restart delivery loop
+                # only undelivered packages will be attempted to be delivered on next loop
+                if package.truck_id is None:
+                    needs_reset = True
+                    # allow some time to pass
+                    truck_1.current_time = datetime.time(
+                        truck_1.current_time.hour,
+                        (truck_1.current_time.minute + 10) % 60,
+                    )
+                    truck_2.current_time = datetime.time(
+                        truck_2.current_time.hour,
+                        (truck_2.current_time.minute + 10) % 60,
+                    )
+                    # reset the loops
+                    i = 0
+                    current_package_truck_1 = None
+                    current_package_truck_2 = None
+                    break
+
+            if not needs_reset:
+                break
 
     # total truck mileage must be less than 140 miles
     total_mileage = truck_1.current_mileage + truck_2.current_mileage
@@ -94,20 +142,51 @@ def deliver_packages(
 
 
 def get_next_closest_package(
-    current_package: Optional[Package], packages: list[Package], distance_table: dict
+    *,
+    current_package: Optional[Package],
+    packages: DeliveryHashTable,
+    distance_table: dict,
+    current_time: datetime.time,
+    truck_id: int,
 ) -> Optional[Package]:
     closest_package: Optional[Package] = None
     min_distance: float = float("inf")
 
     if current_package is None:
-        current_package = packages[0]
+        current_package = packages.lookup(1)
 
-    for candidate in packages:
+    for candidate_id in packages.package_ids:
         # make sure it's not the same package
-        if candidate.package_id == current_package.package_id:
+        if candidate_id == current_package.package_id:
             continue
+
+        candidate: Package = packages.lookup(candidate_id)
+
+        if candidate.delivery_status != DeliveryStatus.AT_HUB:
+            continue
+
         # only packages not on trucks qualify
         if candidate.time_loaded_onto_truck is not None:
+            continue
+
+        if (
+            candidate.earliest_load_time is not None
+            and current_time < candidate.earliest_load_time
+        ):
+            continue
+
+        # package 9 cannot be loaded til 10:20am (when its correct address becomes known)
+        # after that time, correct the address
+        if candidate.package_id == 9:
+            candidate.delivery_address = "410 S State St"
+            candidate.delivery_city = "Salt Lake City"
+            candidate.delivery_state = "UT"
+            candidate.delivery_zip_code = "84111"
+
+        if (
+            candidate.required_truck_id is not None
+            and candidate.required_truck_id != truck_id
+        ):
             continue
 
         distance_to_candidate = distance_table[current_package.address][

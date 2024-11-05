@@ -44,6 +44,7 @@ Requirements:
 """
 
 from lib.delivery_algorithm import deliver_packages, package_status_at_provided_time
+from lib.delivery_data_structure import DeliveryHashTable
 from models import Package, Truck
 from datetime import datetime, timedelta
 from lib.csv_utils import csv_to_packages, csv_to_distances
@@ -53,7 +54,7 @@ def main():
     print("Welcome to the WGUPS delivery system!")
     print("Loading package information...")
 
-    packages: list[Package] = csv_to_packages("data/WGUPSPackageFile.csv")
+    packages: DeliveryHashTable = csv_to_packages("data/WGUPSPackageFile.csv")
     distance_table: dict[str, dict[str, float]] = csv_to_distances(
         "data/WGUPSDistanceTable.csv"
     )

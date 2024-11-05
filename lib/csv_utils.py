@@ -1,11 +1,22 @@
 import csv
+from datetime import datetime, time
 from models.package import Package
-from lib.delivery_data_structure import DeliveryStatus
+from lib.delivery_data_structure import DeliveryHashTable, DeliveryStatus
 from copy import deepcopy
 
 
-def csv_to_packages(filepath: str) -> list[Package]:
-    packages: list[Package] = []
+def parse_delivery_time(time_str: str) -> datetime.time:
+    if time_str == "EOD":
+        return time(23, 59)
+    try:
+        parsed_time = datetime.strptime(time_str, "%H:%M %p").time()
+        return parsed_time
+    except ValueError as e:
+        raise ValueError(f"Invalid delivery time: {time_str}") from e
+
+
+def csv_to_packages(filepath: str) -> DeliveryHashTable:
+    packages: DeliveryHashTable = DeliveryHashTable(40)
 
     with open(filepath) as package_file:
         package_reader = csv.reader(package_file, delimiter=",")
@@ -17,9 +28,11 @@ def csv_to_packages(filepath: str) -> list[Package]:
                 delivery_city = row[2]
                 delivery_state = row[3]
                 delivery_zip_code = row[4]
-                delivery_deadline = row[5]
+                delivery_deadline_str = row[5]
+                delivery_deadline = parse_delivery_time(delivery_deadline_str)
                 package_weight = float(row[6])
                 special_note = row[7] if row[7] else None
+
                 package = Package(
                     package_id=package_id,
                     delivery_address=delivery_address,
@@ -30,7 +43,7 @@ def csv_to_packages(filepath: str) -> list[Package]:
                     delivery_deadline=delivery_deadline,
                     special_notes=special_note,
                 )
-                packages.append(package)
+                packages.insert(package_id=package_id, package=package)
             except Exception as e:
                 print(f"Error: {e}")
                 continue

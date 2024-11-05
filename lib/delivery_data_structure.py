@@ -70,7 +70,11 @@ class DeliveryHashTable:
             raise ValueError(
                 "The hash table must be initialized with a positive length."
             )
+        self.package_ids: list[int] = []
         self.table = [LinkedList() for _ in range(length)]
+
+    def __len__(self):
+        return len(self.package_ids)
 
     def hash_index(self, package_id: int) -> int:
         if package_id < 1:
@@ -80,6 +84,7 @@ class DeliveryHashTable:
     def insert(self, package_id: int, package: Package):
         index: int = self.hash_index(package_id)
         self.table[index].insert_package(package)
+        self.package_ids.append(package_id)
 
     def lookup(self, package_id: int) -> Package | None:
         index: int = self.hash_index(package_id=package_id)
@@ -93,5 +98,7 @@ class DeliveryHashTable:
         index: int = self.hash_index(package_id)
         node = self.table[index].find_node(package_id)
         if node is not None:
-            return self.table[index].remove_node(node).package
+            node = self.table[index].remove_node(node).package
+            self.package_ids.remove(package_id)
+            return node
         return None
