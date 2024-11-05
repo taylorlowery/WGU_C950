@@ -65,24 +65,22 @@ def test_get_closest_package(
     current_package: Optional[Package], package: list[Package], distance_table: dict
 ): ...
 
+
 def test_delivery_time_calculation():
     # Setup
     truck = Truck(1)
     initial_time = time(8, 0)  # 8:00 AM
     truck.current_time = initial_time
     truck.current_location = "HUB"
-    
+
     # Create test package 10 miles away (at 18 mph = ~33 min drive)
     package = Package(1, "TEST_ADDR")
-    truck.distance_table = {
-        "HUB": {"TEST_ADDR": 10.0},
-        "TEST_ADDR": {"HUB": 10.0}
-    }
+    truck.distance_table = {"HUB": {"TEST_ADDR": 10.0}, "TEST_ADDR": {"HUB": 10.0}}
     truck.packages.append(package)
-    
+
     # Act
     truck.deliver_package(package)
-    
+
     # Assert
     expected_time = time(8, 33)  # Should be ~8:33 AM
     assert truck.current_time.hour == expected_time.hour

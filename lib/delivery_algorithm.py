@@ -110,9 +110,9 @@ def get_next_closest_package(
         if candidate.time_loaded_onto_truck is not None:
             continue
 
-        distance_to_candidate = (
-            distance_table[current_package.address][candidate.address]
-        )
+        distance_to_candidate = distance_table[current_package.address][
+            candidate.address
+        ]
 
         if distance_to_candidate < min_distance:
             closest_package = candidate
