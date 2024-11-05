@@ -56,9 +56,9 @@ def csv_to_distances(filepath: str) -> dict:
         row = rows[i]
         for j, distance in enumerate(row[2:], start=0):
             if distance == "":
-                break # once we hit empty strings, move to next row
+                break  # once we hit empty strings, move to next row
             to_location = locations[j]
             distance_map[location][to_location] = float(distance)
             distance_map[to_location][location] = float(distance)
-    
+
     return distance_map

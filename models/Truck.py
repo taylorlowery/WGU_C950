@@ -51,18 +51,20 @@ class Truck:
         # move truck through time and space to delivery location
         self.current_location = package.address
         self.current_mileage += distance
-        current_datetime = datetime.datetime.combine(datetime.date.today(), self.current_time)
-        self.current_time = (current_datetime + datetime.timedelta(hours=elapsed_time)).time()
+        current_datetime = datetime.datetime.combine(
+            datetime.date.today(), self.current_time
+        )
+        current_datetime = current_datetime + datetime.timedelta(hours=elapsed_time)
+        self.current_time = current_datetime.time()
 
         # set package status to delivered
-        package.delivery_state = DeliveryStatus.DELIVERED
+        package.delivery_status = DeliveryStatus.DELIVERED
         package.time_delivered = self.current_time
         self.delivered_packages.append(package)
 
     def deliver_all_packages(self):
         # one by one, dequeue and deliver packages
         while (package := self.next_package()) is not None:
-            # TODO: Parse distances and get distance map
             self.deliver_package(package=package)
 
         # return home
@@ -70,5 +72,9 @@ class Truck:
         elapsed_time = distance_home / TRUCK_SPEED_MPH
         self.current_mileage += distance_home
         self.current_location = "HUB"
-        current_datetime = datetime.datetime.combine(datetime.date.today(), self.current_time)
-        self.current_time = (current_datetime + datetime.timedelta(hours=elapsed_time)).time()
+        current_datetime = datetime.datetime.combine(
+            datetime.date.today(), self.current_time
+        )
+        self.current_time = (
+            current_datetime + datetime.timedelta(hours=elapsed_time)
+        ).time()

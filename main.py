@@ -54,7 +54,9 @@ def main():
     print("Loading package information...")
 
     packages: list[Package] = csv_to_packages("data/WGUPSPackageFile.csv")
-    distance_table: dict[str, dict[str, float]] = csv_to_distances("data/WGUPSDistanceTable.csv")
+    distance_table: dict[str, dict[str, float]] = csv_to_distances(
+        "data/WGUPSDistanceTable.csv"
+    )
 
     packages = deliver_packages(packages, distance_table=distance_table)
 

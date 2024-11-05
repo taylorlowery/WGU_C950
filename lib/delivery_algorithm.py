@@ -2,12 +2,13 @@
 
 """
 
+from typing import Optional
 from models import Truck
 from models.package import Package, DeliveryStatus
-from datetime import datetime
+import datetime
 
 
-START_TIME = datetime.strptime("08:00:00", "%H:%M:%S")
+START_TIME = datetime.datetime.strptime("08:00:00", "%H:%M:%S")
 
 
 def package_status_at_provided_time(
@@ -25,21 +26,23 @@ def package_status_at_provided_time(
     # default state -- AT_HUB
     if (
         selected_package.time_delivered is None
-        or current_time < selected_package.time_loaded_onto_truck
+        or current_time.time() < selected_package.time_loaded_onto_truck
     ):
-        return f"Package {selected_package.package_id} {DeliveryStatus.AT_HUB}"
+        return f"Package {selected_package.package_id} - {DeliveryStatus.AT_HUB}"
 
-    if selected_package.time_delivered < current_time:
+    if selected_package.time_delivered < current_time.time():
         # since this will only be run against packages
         # that have already been run through the algo
         # should be "DELIVERED"
-        return f"Package {selected_package.package_id} {selected_package.delivery_status.value} at {selected_package.time_delivered}"
+        return f"Package {selected_package.package_id} - {selected_package.delivery_status.value} at {selected_package.time_delivered}"
 
     # current time is before time_delivered and package was loaded on a truck, so it's en route
     return f"Package {selected_package.package_id} - {DeliveryStatus.EN_ROUTE} on truck {selected_package.truck_id}"
 
 
-def deliver_packages(packages: list[Package], distance_table: dict[str, dict[str, float]]):
+def deliver_packages(
+    packages: list[Package], distance_table: dict[str, dict[str, float]]
+):
     """Nearest-Neighbor Greedy Algorithm to deliver packages.
 
     Assumptions:
@@ -69,16 +72,50 @@ def deliver_packages(packages: list[Package], distance_table: dict[str, dict[str
     # once all 10:30am deliveries are complete,
     # nearest neighbor deliveries til all are delivered
     i: int = 0
+    current_package: Optional[Package] = None
     while i < len(packages):
-        j = 0
-        while j < 16:
-            truck_1.load_package(package=packages[j])
+        j = i
+        while j < i + 16 and j < len(packages):
+            current_package = get_next_closest_package(
+                current_package=current_package,
+                packages=packages,
+                distance_table=distance_table,
+            )
+            truck_1.load_package(current_package)
             j += 1
-            i += 1
         truck_1.deliver_all_packages()
+        i += 16
 
     # total truck mileage must be less than 140 miles
     total_mileage = truck_1.current_mileage + truck_2.current_mileage
     print(f"Total Mileage: {total_mileage}")
 
     return packages
+
+
+def get_next_closest_package(
+    current_package: Optional[Package], packages: list[Package], distance_table: dict
+) -> Optional[Package]:
+    closest_package: Optional[Package] = None
+    min_distance: float = float("inf")
+
+    if current_package is None:
+        current_package = packages[0]
+
+    for candidate in packages:
+        # make sure it's not the same package
+        if candidate.package_id == current_package.package_id:
+            continue
+        # only packages not on trucks qualify
+        if candidate.time_loaded_onto_truck is not None:
+            continue
+
+        distance_to_candidate = (
+            distance_table[current_package.address][candidate.address]
+        )
+
+        if distance_to_candidate < min_distance:
+            closest_package = candidate
+            min_distance = distance_to_candidate
+
+    return closest_package

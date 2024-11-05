@@ -23,4 +23,9 @@ def test_distance_csv_load():
     """Simple integration test to validate distance map can be loaded from csv."""
     filepath = "data\WGUPSDistanceTable.csv"
     distance_map = csv_utils.csv_to_distances(filepath)
-    assert distance_map["Wheeler Historic Farm 6351 South 900 East"]["Western Governors University 4001 South 700 East, Salt Lake City, UT 84107"] == 3.6
+    assert (
+        distance_map["Wheeler Historic Farm 6351 South 900 East"][
+            "Western Governors University 4001 South 700 East, Salt Lake City, UT 84107"
+        ]
+        == 3.6
+    )
