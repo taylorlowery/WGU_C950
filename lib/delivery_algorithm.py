@@ -68,7 +68,7 @@ def deliver_packages(
 
     # default truck start time is 8:00am
     # simulate the second truck starting at 9:05am
-    # so delayed packages are loaded
+    # so all delayed packages are loaded onto truck 2
     truck_2.current_time = datetime.time(9, 5)
 
     # Package-Loading Algorithm
