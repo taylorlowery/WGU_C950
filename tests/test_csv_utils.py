@@ -1,5 +1,4 @@
 import datetime
-import pytest
 import lib.csv_utils as csv_utils
 from lib.delivery_data_structure import DeliveryStatus
 
