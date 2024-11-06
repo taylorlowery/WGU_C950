@@ -70,23 +70,31 @@ class DeliveryHashTable:
             raise ValueError(
                 "The hash table must be initialized with a positive length."
             )
+        # track the package ids that have been added, analagous to dict.keys()
         self.package_ids: list[int] = []
+        
+        # list of linked lists to act as the hash table itself
         self.table = [LinkedList() for _ in range(length)]
 
     def __len__(self):
         return len(self.package_ids)
 
     def hash_index(self, package_id: int) -> int:
+        """Hash the package id to use as an index for the linked list."""
         if package_id < 1:
             raise ValueError("Invalid package id: must be a positive integer.")
         return package_id % len(self.table)
 
     def insert(self, package_id: int, package: Package):
+        """Add a package to the hash table"""
         index: int = self.hash_index(package_id)
         self.table[index].insert_package(package)
         self.package_ids.append(package_id)
 
     def lookup(self, package_id: int) -> Package | None:
+        """Search for a package in the hash table.
+        If found, returns the node without removing it from the hash table.
+        """
         index: int = self.hash_index(package_id=package_id)
         # potential weakness: have to use hash index and package id
         node = self.table[index].find_node(package_id)
@@ -95,6 +103,7 @@ class DeliveryHashTable:
         return None
 
     def remove(self, package_id: int) -> Package | None:
+        """Removes a package from the hash table."""
         index: int = self.hash_index(package_id)
         node = self.table[index].find_node(package_id)
         if node is not None:
