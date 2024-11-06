@@ -59,11 +59,23 @@ def test_delivery_algorithm():
         "data/WGUPSDistanceTable.csv"
     )
 
-    packages = deliver_packages(packages, distance_table=distance_table)
+    late_packages: list[Package] = []
+
+    packages, total_mileage = deliver_packages(packages, distance_table=distance_table)
     for package_id in packages.package_ids:
         package = packages.lookup(package_id)
+
+        if package.required_truck_id is not None:
+            assert package.truck_id == package.required_truck_id
+
         assert package.delivery_status == DeliveryStatus.DELIVERED
+
         if package.earliest_load_time is not None:
-            assert package.time_loaded_onto_truck > package.earliest_load_time
-        if package.delivery_deadline != "EOD":
-            assert package.time_delivered <= package.delivery_deadline
+            assert package.time_loaded_onto_truck >= package.earliest_load_time
+
+        # assert package.time_delivered <= package.delivery_deadline
+        if package.time_delivered > package.delivery_deadline:
+            late_packages.append(package)
+
+        assert len(late_packages) == 0, late_packages
+        assert total_mileage < 140.0

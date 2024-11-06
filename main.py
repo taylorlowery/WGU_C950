@@ -59,7 +59,7 @@ def main():
         "data/WGUPSDistanceTable.csv"
     )
 
-    packages = deliver_packages(packages, distance_table=distance_table)
+    packages, total_mileage = deliver_packages(packages, distance_table=distance_table)
 
     print("Package info loaded!")
     print("Press 'q' to quit at any time.")

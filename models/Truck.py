@@ -1,5 +1,5 @@
 import datetime
-from typing import Optional, Deque
+from typing import Optional
 from models.package import Package, DeliveryStatus
 from dataclasses import dataclass, field
 
@@ -11,13 +11,14 @@ TRUCK_SPEED_MPH: float = 18.0
 class Truck:
     truck_id: int
     distance_table: dict[str, dict[str, float]] = field(default_factory=dict)
-    packages_to_deliver: Deque[Package] = field(default_factory=Deque)
+    packages_to_deliver: list[Package] = field(default_factory=list)
     delivered_packages: list[Package] = field(default_factory=list)
     current_package: Optional[Package] = None
     current_location: str = "HUB"
     current_time: datetime.time = datetime.time(8, 0)
     active: bool = False
     current_mileage: float = 0.0
+    total_trips: int = 0
 
     def load_package(self, package: Package):
         """Load packages onto truck.
@@ -28,14 +29,22 @@ class Truck:
         """
         package.time_loaded_onto_truck = self.current_time
         package.truck_id = self.truck_id
+        package.delivery_status = DeliveryStatus.EN_ROUTE
         self.packages_to_deliver.append(package)
 
     def next_package(self) -> Optional[Package]:
         """Retrieve next package from queue, or return None if empty"""
         if len(self.packages_to_deliver) == 0:
             return None
-        p = self.packages_to_deliver.popleft()
-        return p
+        min_distance = float("inf")
+        selected_package = None
+        for package in self.packages_to_deliver:
+            distance = self.distance_table[self.current_location][package.address]
+            if distance < min_distance:
+                min_distance = distance
+                selected_package = package
+
+        return selected_package
 
     def deliver_package(self, package: Package):
         """Deliver a package.
@@ -61,6 +70,7 @@ class Truck:
         package.delivery_status = DeliveryStatus.DELIVERED
         package.time_delivered = self.current_time
         self.delivered_packages.append(package)
+        self.packages_to_deliver.remove(package)
 
     def deliver_all_packages(self):
         # one by one, dequeue and deliver packages
@@ -78,3 +88,4 @@ class Truck:
         self.current_time = (
             current_datetime + datetime.timedelta(hours=elapsed_time)
         ).time()
+        self.total_trips += 1
