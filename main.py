@@ -80,7 +80,7 @@ def main():
 
                 # user selects valid ID, so print its status
                 if 1 <= package_id <= len(packages):
-                    selected_package = packages[package_id - 1]
+                    selected_package = packages.lookup(package_id)
                     print(
                         package_status_at_provided_time(
                             selected_package=selected_package, current_time=current_time
@@ -89,7 +89,8 @@ def main():
 
                 # User wants to see all package statuses
                 elif -1 == package_id:
-                    for p in packages:
+                    for package_id in packages.package_ids:
+                        p = packages.lookup(package_id)
                         print(
                             package_status_at_provided_time(
                                 selected_package=p, current_time=current_time
@@ -116,7 +117,7 @@ def ask_for_current_time():
     try:
         current_time_str = input("Please enter the current time (HH:MM):\n>> ")
 
-        current_time = datetime.strptime(current_time_str, "%H:%M")
+        current_time = datetime.strptime(current_time_str, "%H:%M").time()
         return current_time
 
     except ValueError:

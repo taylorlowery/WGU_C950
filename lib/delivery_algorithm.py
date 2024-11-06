@@ -146,16 +146,8 @@ def deliver_packages(
             if not needs_reset:
                 break
 
-    for package_id in packages.package_ids:
-        print(
-            package_status_at_provided_time(
-                packages.lookup(package_id), datetime.time(23, 59)
-            )
-        )
-
     # total truck mileage must be less than 140 miles
     total_mileage = truck_1.current_mileage + truck_2.current_mileage
-    print(f"Total Mileage: {total_mileage}")
 
     return packages, total_mileage
 
