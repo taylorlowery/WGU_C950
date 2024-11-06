@@ -54,13 +54,21 @@ def main():
     print("Welcome to the WGUPS delivery system!")
     print("Loading package information...")
 
+    # gather package data from CSV into hash table
     packages: DeliveryHashTable = csv_to_packages("data/WGUPSPackageFile.csv")
+
+    # gather distance table into a two-dimensional dict for easy distance lookup
     distance_table: dict[str, dict[str, float]] = csv_to_distances(
         "data/WGUPSDistanceTable.csv"
     )
 
+    # deliver the packages
+    # this passes the packages DeliveryHashTable through the delivery algorithm,
+    # and returns them with their delivery times, statuses,
+    # and the total mileage driven by the delivery trucks
     packages, total_mileage = deliver_packages(packages, distance_table=distance_table)
 
+    # Load Console-based UI
     print("Package info loaded!")
     print("Press 'q' to quit at any time.")
     try:
@@ -69,8 +77,10 @@ def main():
 
             # Get user's desired package
             _input = input(
-                f"Please enter a package id (1 - {len(packages)}) to view its status, or -1 to print all package statuses."
-                "\nPress q to quit\n>> "
+                f"Please enter a package id (1 - {len(packages)}) to view its status,\n"
+                "-1 to print all package statuses at a given time,\n"
+                "or -2 to view all package statuses after delivery, along with total mileage\n"
+                "\nEnter q to quit\n>> "
             )
             try:
                 package_id = int(_input)
@@ -83,7 +93,8 @@ def main():
                     selected_package = packages.lookup(package_id)
                     print(
                         package_status_at_provided_time(
-                            selected_package=selected_package, current_time=current_time
+                            selected_package=selected_package,
+                            current_time=current_time,
                         )
                     )
 
@@ -93,14 +104,21 @@ def main():
                         p = packages.lookup(package_id)
                         print(
                             package_status_at_provided_time(
-                                selected_package=p, current_time=current_time
+                                selected_package=p,
+                                current_time=current_time,
                             )
                         )
-                else:
+                # User wants to see all statuses and total mileage after delivery
+                elif -2 == package_id:
+                    p = packages.lookup(package_id)
                     print(
-                        "Invalid package ID. Please enter a number between 1 and",
-                        len(packages),
+                        package_status_at_provided_time(
+                            selected_package=p,
+                            current_time=datetime.time(23, 59),
+                        )
                     )
+                else:
+                    print("Invalid option selected.")
 
             except ValueError:
                 if _input.lower() != "q":
@@ -116,10 +134,8 @@ def ask_for_current_time():
     """Ask user to input the time they would like to see package statuses for."""
     try:
         current_time_str = input("Please enter the current time (HH:MM):\n>> ")
-
         current_time = datetime.strptime(current_time_str, "%H:%M").time()
         return current_time
-
     except ValueError:
         print("Invalid time format. Please enter the time in HH:MM format.")
 

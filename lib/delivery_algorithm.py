@@ -58,6 +58,8 @@ def deliver_packages(
         •  The distances provided in the "WGUPS Distance Table" are equal regardless of the direction traveled.
         •  The day ends when all 40 packages have been delivered.
 
+        
+    **NOTE: All the special cases were handled by putting them all on truck 2's first trip.**
     """
 
     # three trucks are available, but only two drivers, so only two can be utilized.
@@ -69,21 +71,19 @@ def deliver_packages(
     # so delayed packages are loaded
     truck_2.current_time = datetime.time(9, 5)
 
-    # load distances
-    # distances need to be parsed according to their weirdnesses
-
-    # since some packages are delayed til 9:05,
-    # start one truck delivering all the other early packages,
-    # second truck will be loaded at 9:05 and start delivering all those before 10:30
-    # once all 10:30am deliveries are complete,
-    # nearest neighbor deliveries til all are delivered
-    packages_to_load = 16
+    # Package-Loading Algorithm
+    max_packages_per_truck = 16
     i: int = 0
     current_package_truck_1: Optional[Package] = None
     current_package_truck_2: Optional[Package] = None
+    
+    # iterate through packages and load them onto trucks, 16 at a time.
+    # truck 1 is fully loaded before truck 2, with its "priority deadline"
+    # set to focus on the packages due before 10:30.
+
     while i < len(packages):
         j = i
-        while j < i + packages_to_load and j < len(packages):
+        while j < i + max_packages_per_truck and j < len(packages):
             current_package_truck_1 = get_next_closest_package(
                 current_package=current_package_truck_1,
                 packages=packages,
@@ -98,7 +98,7 @@ def deliver_packages(
 
         # repeat loading operation with second truck
         j = i
-        while j < i + packages_to_load and j < len(packages):
+        while j < i + max_packages_per_truck and j < len(packages):
             current_package_truck_2 = get_next_closest_package(
                 current_package=current_package_truck_2,
                 packages=packages,
@@ -110,8 +110,9 @@ def deliver_packages(
             if current_package_truck_2 is not None:
                 truck_2.load_package(current_package_truck_2)
             j += 1
-        i += packages_to_load
+        i += max_packages_per_truck
 
+        # deliver packages on both trucks
         truck_1.deliver_all_packages()
         truck_2.deliver_all_packages()
 
@@ -161,6 +162,15 @@ def get_next_closest_package(
     truck_id: int,
     priority_deadline: Optional[datetime.time] = None,
 ) -> Optional[Package]:
+    """Get the next package for delivery.
+    Iterates through all the packages returns the one closest to the current location, 
+    given a number of other conditions, such as whether the package specifies an
+    earliest pickup time from the depot, a specific truck for delivery, 
+    and allows the user to specify a "priority deadline" -- that is, it will prioritize
+    packages with delivery deadlines before the provided time.
+    """
+
+
     closest_package: Optional[Package] = None
     min_distance: float = float("inf")
 
@@ -201,7 +211,10 @@ def get_next_closest_package(
                         continue
 
         # package 9 cannot be loaded til 10:20am (when its correct address becomes known)
-        # after that time, correct the address
+        # after that time, correct the address.
+        # I acknowledge that this side effect is bad practice,
+        # but wanted to put it here to simulate learning the correct address
+        # only after 10:20am.
         if candidate.package_id == 9:
             candidate.delivery_address = "410 S State St"
             candidate.delivery_city = "Salt Lake City"
