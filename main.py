@@ -23,12 +23,12 @@ Requirements:
     - [x] Create an identifying comment within the first line of a file named "main.py" that includes your student ID.
     - [x] Include comments in your code to explain both the process and the flow of the program.
 
-- [ ] Provide an intuitive interface for the user to view the delivery status (including the delivery time) of any package at any time and the total mileage traveled by all trucks. (The delivery status should report the package as at the hub, en route, or delivered. Delivery status must include the time.)
-    - [ ] Provide screenshots to show the status of all packages loaded onto each truck at a time between 8:35 a.m. and 9:25 a.m.
-    - [ ] Provide screenshots to show the status of all packages loaded onto each truck at a time between 9:35 a.m. and 10:25 a.m.
-    - [ ] Provide screenshots to show the status of all packages loaded onto each truck at a time between 12:03 p.m. and 1:12 p.m.
+- [x] Provide an intuitive interface for the user to view the delivery status (including the delivery time) of any package at any time and the total mileage traveled by all trucks. (The delivery status should report the package as at the hub, en route, or delivered. Delivery status must include the time.)
+    - [x] Provide screenshots to show the status of all packages loaded onto each truck at a time between 8:35 a.m. and 9:25 a.m.
+    - [x] Provide screenshots to show the status of all packages loaded onto each truck at a time between 9:35 a.m. and 10:25 a.m.
+    - [x] Provide screenshots to show the status of all packages loaded onto each truck at a time between 12:03 p.m. and 1:12 p.m.
 
-- [ ] Provide screenshots showing successful completion of the code that includes the total mileage traveled by all trucks.
+- [x] Provide screenshots showing successful completion of the code that includes the total mileage traveled by all trucks.
 
 - [ ] Justify the package delivery algorithm used in the solution as written in the original program by doing the following:
     - [ ] Describe two or more strengths of the algorithm used in the solution.
@@ -46,7 +46,7 @@ Requirements:
 from lib.delivery_algorithm import deliver_packages, package_status_at_provided_time
 from lib.delivery_data_structure import DeliveryHashTable
 from models import Package, Truck
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, time
 from lib.csv_utils import csv_to_packages, csv_to_distances
 
 
@@ -86,7 +86,7 @@ def main():
                 package_id = int(_input)
 
                 # get the desired time user would like to see package status
-                current_time = ask_for_current_time()
+                current_time = ask_for_current_time() if package_id != -2 else time(23, 59)
 
                 # user selects valid ID, so print its status
                 if 1 <= package_id <= len(packages):
@@ -110,16 +110,19 @@ def main():
                         )
                 # User wants to see all statuses and total mileage after delivery
                 elif -2 == package_id:
-                    p = packages.lookup(package_id)
-                    print(
-                        package_status_at_provided_time(
-                            selected_package=p,
-                            current_time=datetime.time(23, 59),
+                    for package_id in packages.package_ids:
+                        p = packages.lookup(package_id)
+                        print(
+                            package_status_at_provided_time(
+                                selected_package=p,
+                                current_time=current_time,
+                            )
                         )
-                    )
+                    print(f"Total mileage for all trucks: {total_mileage}")
                 else:
                     print("Invalid option selected.")
 
+                print("\n\n")
             except ValueError:
                 if _input.lower() != "q":
                     print("Invalid input.")

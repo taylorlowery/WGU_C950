@@ -27,19 +27,19 @@ def sample_package():
 def test_package_at_hub(sample_package):
     current_time = time(7, 0)  # Before loading time
     result = package_status_at_provided_time(sample_package, current_time)
-    assert f"Package 1 - {DeliveryStatus.AT_HUB}" in result
+    assert f"Package 01 - {DeliveryStatus.AT_HUB}" in result
 
 
 def test_package_en_route(sample_package):
     current_time = time(9, 0)  # En route (already picked up, before delivery)
     result = package_status_at_provided_time(sample_package, current_time)
-    assert f"Package 1 - {DeliveryStatus.EN_ROUTE} on truck 1" in result
+    assert f"Package 01 - {DeliveryStatus.EN_ROUTE} to Test Address (12345) on truck 1" in result
 
 
 def test_package_delivered(sample_package):
     current_time = time(11, 0)  # After delivery
     result = package_status_at_provided_time(sample_package, current_time)
-    assert f"Package 1 - {DeliveryStatus.DELIVERED}" in result
+    assert f"Package 01 - {DeliveryStatus.DELIVERED}" in result
     assert "10:00:00" in result
 
 
@@ -50,7 +50,7 @@ def test_unprocessed_package():
     )
     current_time = time(8, 0)
     result = package_status_at_provided_time(unprocessed_package, current_time)
-    assert f"Package 2 - {DeliveryStatus.AT_HUB}" in result
+    assert f"Package 02 - {DeliveryStatus.AT_HUB}" in result
 
 
 def test_delivery_algorithm():

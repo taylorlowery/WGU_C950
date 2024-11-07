@@ -29,16 +29,33 @@ def package_status_at_provided_time(
         selected_package.time_delivered is None
         or current_time < selected_package.time_loaded_onto_truck
     ):
-        return f"Package {selected_package.package_id} - {DeliveryStatus.AT_HUB}"
+        return (
+            f"Package {selected_package.package_id:02d} - {DeliveryStatus.AT_HUB} "
+            f"(delivery deadline was {selected_package.delivery_deadline}) "
+            f"Special Note: {selected_package.special_notes}"
+        )
 
     if selected_package.time_delivered < current_time:
         # since this will only be run against packages
         # that have already been run through the algo
         # should be "DELIVERED"
-        return f"Package {selected_package.package_id} - {selected_package.delivery_status.value} by truck {selected_package.truck_id} at {selected_package.time_delivered} (delivery deadline was {selected_package.delivery_deadline})"
+        return (
+            f"Package {selected_package.package_id:02d} - {selected_package.delivery_status.value} "
+            f"to {selected_package.address} "
+            f"by truck {selected_package.truck_id} "
+            f"at {selected_package.time_delivered} "
+            f"(delivery deadline was {selected_package.delivery_deadline}) "
+            f"Special Note: {selected_package.special_notes}"
+        )
 
     # current time is before time_delivered and package was loaded on a truck, so it's en route
-    return f"Package {selected_package.package_id} - {DeliveryStatus.EN_ROUTE} on truck {selected_package.truck_id}"
+    return (
+        f"Package {selected_package.package_id:02d} - {DeliveryStatus.EN_ROUTE} "
+        f"to {selected_package.address} "
+        f"on truck {selected_package.truck_id} "
+        f"(delivery deadline is {selected_package.delivery_deadline}) "
+        f"Special Note: {selected_package.special_notes}"
+    )
 
 
 def deliver_packages(
